@@ -5,7 +5,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware 
 from openai import AzureOpenAI  
+import pandas as pd
+from dotenv import load_dotenv
 
+load_dotenv()
 
 app = FastAPI()
 
@@ -26,38 +29,31 @@ chroma_client = chromadb.Client()
 # switch `create_collection` to `get_or_create_collection` to avoid creating a new collection every time
 collection = chroma_client.get_or_create_collection(name="sustainability_initiatives")
 
-# switch `add` to `upsert` to avoid adding the same documents every time
+df = pd.read_csv('../resources/Virgin_StartHack_Sample_Initiatives.csv', encoding='unicode_escape')
+df.dropna(axis='columns', how='all',  inplace=True)
+
+documents = []
+ids = []
+
+for index in range(len(df.index)):
+    documents.append(json.dumps(df.iloc[index].to_json()))
+    ids.append(f"doc_{index}")
+    # print(df.iloc[index].to_json())
+
 collection.upsert(
-    documents=[
-        "This is a document about pineapple",
-        "This is a document about apple",
-        "This is a document about orange",
-        "This is a document about mango",
-        "This is a document about grapes",
-        "This is a document about banana",
-        "This is a document about oranges"
-    ],
-    ids=[
-        "id1",
-        "id2",
-        "id3",
-        "id4",
-        "id5",
-        "id6",
-        "id7",
-        ]
+    documents=documents,
+    ids=ids
 )
 
 # Initialize Azure OpenAI Service client with key-based authentication    
-endpoint = os.getenv("ENDPOINT_URL", "")  
-deployment = os.getenv("DEPLOYMENT_NAME", "")  
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY", "")  
+endpoint = os.getenv("ENDPOINT_URL")  
+deployment = os.getenv("DEPLOYMENT_NAME")  
+subscription_key = os.getenv("AZURE_OPENAI_API_KEY")  
 
 client = AzureOpenAI(  
     azure_endpoint=endpoint,  
     api_key=subscription_key,  
     api_version="2024-05-01-preview",
-
 )
 
 
@@ -79,7 +75,7 @@ def read_item(query: QueryRequest):
         n_results=5 # how many results to return
     )
     
-    prompt = f"Please provide a detailed answer to the question based only on given documents from RAG, do not answer outside from given info: {query.query}"
+    prompt = f"Please provide a detailed answer to the question based only on given documents from RAG and if possible also send URL if it is present, do not answer outside from given info: {query.query}"
     prompt += "\n\n"
     prompt += json.dumps(results)
 
