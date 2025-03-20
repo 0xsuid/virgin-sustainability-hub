@@ -1,13 +1,9 @@
-import chromadb
-from typing import Union
-
-from fastapi import FastAPI
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-
 import json
 import os  
-import base64
+import chromadb
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware 
 from openai import AzureOpenAI  
 
 
