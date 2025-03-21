@@ -12,6 +12,5 @@ export async function similaritySearch(query: string) {
         })
     });
     const data = await result.json();
-    console.log(data);
     return data.results;
 }
