@@ -75,9 +75,46 @@ def read_item(query: QueryRequest):
         n_results=5 # how many results to return
     )
     
-    prompt = f"Please provide a detailed answer to the question based only on given documents from RAG and if possible also send URL if it is present, do not answer outside from given info: {query.query}"
-    prompt += "\n\n"
-    prompt += json.dumps(results)
+    prompt = "Context: \n" + json.dumps(results) + "\n\n"
+    prompt += "Question: {query.query} \n"
+    prompt += "Please provide an answer to the above question if it is directly related to the sustainability initiatives mentioned. If the question cannot be answered based on the provided context, return an empty sustainability_initiatives JSON object. Do not include any explanations or irrelevant information."
+    prompt += """
+    Context which might be not relevant sometime so only answer question if it matches otherwise return empty json
+    Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation and do not add new line and include result only if it is relevant:
+    {
+        "sustainability_initiatives": [
+            {
+                "Virgin_Company": "Virgin Atlantic",
+                "Initiative": "Youngest, Cleanest Fleet in the Sky",
+                "Challenge": "The time for action against climate change is now. Virgin Atlantic are on a mission to achieve net-zero by 2050.",
+                "What_Virgin_is_doing": "Virgin Atlantic is working to accelerate the development of sustainable fuels. On November 28th, we made history with Flight100— becoming the first commercial airline to fly across the Atlantic on 100% SAF - marking a key milestone on the path to decarbonising aviation.",
+                "Call_to_Action": [
+                    "Stay informed",
+                    "Sign up for updates on ways you can get involved in making a difference"
+                ],
+                "Links": [
+                    "https://corporate.virginatlantic.com/gb/en/business-for-good/planet.html",
+                    "https://corporate.virginatlantic.com/gb/en/business-for-good/planet/fuel/flight100.html",
+                    "https://corporate.virginatlantic.com/gb/en/business-for-good/planet/fuel.html"
+                ]
+            },
+            {
+                "Virgin_Company": "Virgin Atlantic & Virgin Unite",
+                "Initiative": "Protecting our Planet",
+                "Challenge": "Contrails, aircraft condensation trails, heighten the effect of global warming, which may account for more than half (57%) of the entire climate impact of aviation.",
+                "What_Virgin_is_doing": "Virgin Atlantic, Virgin Unite, and Flight100 have also joined forces with RMI to establish the Contrail Impact Task Force, aiming to address the environmental impact of aircraft contrails.",
+                "Call_to_Action": [
+                    "Stay informed",
+                    "Donate to RMI"
+                ],
+                "Links": [
+                    "https://corporate.virginatlantic.com/gb/en/business-for-good/planet/fleet.html",
+                    "https://www.virgin.com/virgin-unite/latest/flight100-virgin-atlantic-and-rmi-test-new-ways-to-reduce-aviations-climate"
+                ]
+            }
+        ]
+    }
+    """
 
     chat_prompt = [
         {
@@ -112,4 +149,4 @@ def read_item(query: QueryRequest):
         stream=False  
     )  
 
-    return {"results": completion.choices[0].message.content}  
+    return {"results": json.loads(completion.choices[0].message.content)}  
