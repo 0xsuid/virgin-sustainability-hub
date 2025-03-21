@@ -77,9 +77,9 @@ def read_item(query: QueryRequest):
     
     prompt = "Context: \n" + json.dumps(results) + "\n\n"
     prompt += "Question: {query.query} \n"
-    prompt += "Please provide an answer to the above question if it is directly related to the sustainability initiatives mentioned. If the question cannot be answered based on the provided context, return an empty sustainability_initiatives JSON object. Do not include any explanations or irrelevant information."
+    prompt += "Please provide an answer to the above question only if it directly relates to the sustainability initiatives mentioned in the context. If the question cannot be answered based on the provided context, return an empty sustainability_initiatives JSON object. Do not include any explanations or irrelevant information.If the context contains extra sustainability initiatives that are not relevant to the question, exclude them from your answer."
     prompt += """
-    Context which might be not relevant sometime so only answer question if it matches otherwise return empty json
+    Ensure that the response strictly adheres to the relevance of sustainability initiatives as they pertain to the question asked.
     Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation and do not add new line and include result only if it is relevant:
     {
         "sustainability_initiatives": [
